@@ -1,4 +1,4 @@
-import           Prelude
+import           RIO
 
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = hPutBuilder stdout "Test suite not yet implemented"

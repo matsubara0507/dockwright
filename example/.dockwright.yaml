@@ -1,0 +1,10 @@
+output: "."
+template: "Dockerfile.template"
+base:
+  repo: elixir
+  tag: 1.6.5
+env:
+  elchemy_version:
+    github:
+      repo: wende/elchemy
+      hook: release
