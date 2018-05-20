@@ -28,6 +28,7 @@ instance Associate "logger" LogFunc xs => HasLogFunc (Record xs) where
 data DockwrightException
     = DockerfileParseError Docker.ParseError
     | FetchEnvError Text
+    | EchoEnvError String
     deriving (Typeable)
 
 instance Exception DockwrightException
@@ -36,3 +37,4 @@ instance Show DockwrightException where
   show = \case
     DockerfileParseError err -> "dockerfile parse error: " <> show err
     FetchEnvError err        -> "fetch env error: " <> Text.unpack err
+    EchoEnvError key         -> "echo env error: not found " <> key
