@@ -56,7 +56,7 @@ executables:
 
 tests:
   dockwright-test:
-    main:                Spec.hs
+    main:                Driver.hs
     source-dirs:         test
     ghc-options:
     - -threaded
@@ -64,3 +64,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - dockwright
+    - tasty
+    - tasty-hspec
