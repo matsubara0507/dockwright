@@ -22,8 +22,10 @@ fetchRelease' conf =
     Right r  -> pure $ Just (Text.unpack $ r ^. #tag_name)
 
 fetchRelease ::
-  MonadIO m => (Text, Text) -> m (Either DockwrightException Release)
-fetchRelease (owner, repo) =
+  (MonadIO m, MonadReader e m, HasLogFunc e)
+  => (Text, Text) -> m (Either DockwrightException Release)
+fetchRelease (owner, repo) = do
+  logDebug (display $ "fetch github: " <> tshow url)
   liftIO $ (latest <$> runReq def (responseBody <$> request)) `catch` handler
   where
     request = req GET url NoReqBody jsonResponse h

@@ -30,24 +30,31 @@ main = withGetOpt "[options] [config-file]" info $ \opts args -> if
        <: #version @= optFlag [] ["version"] "Show version"
        <: nil
 
-buildDockerFile :: Record Options -> [String] -> IO ()
-buildDockerFile opts args = do
-  let path = fromMaybe "./.dockwright.yaml" $ listToMaybe args
-  logOpts <- logOptionsHandle stdout (opts ^. #verbose)
-  fmap decodeEither (readFileBinary path) >>= \case
-    Left  err    -> error $ "yaml parse error: " <> err
-    Right config -> do
-      file <- withLogFunc logOpts $ \logger -> do
-        let env = #config @= config
-               <: #logger @= logger
-               <: nil
-        runRIO env build
-      writeFileUtf8 "Dockerfile" (fromString $ Docker.prettyPrint file)
-
 type Options =
    '[ "verbose" >: Bool
     , "version" >: Bool
     ]
+
+buildDockerFile :: Record Options -> [String] -> IO ()
+buildDockerFile opts args = do
+  logOpts <- logOptionsHandle stdout (opts ^. #verbose)
+  withLogFunc logOpts $ \logger -> do
+    let path = fromMaybe "./.dockwright.yaml" $ listToMaybe args
+    runRIO (#logger @== logger <: nil) $
+      logDebug (displayShow $ "read config yaml: " <> path)
+    fmap decodeEither (readFileBinary path) >>= \case
+      Left  err    -> error $ "yaml parse error: " <> err
+      Right config -> do
+        let env = #config @= config
+               <: #logger @= logger
+               <: nil
+        runRIO env $ do
+          logDebug "build Dockerfile from template and config yaml."
+          file <- build
+          let opath = config ^. #output <> "/Dockerfile"
+          logDebug (displayShow $ "write Dockerfile: " <> opath)
+          writeFileUtf8 opath (fromString $ Docker.prettyPrint file)
+          logInfo "Build Sccuess!"
 
 buildVersion :: Version -> Builder
 buildVersion v = encodeUtf8Builder . fromString $ unwords

@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE TypeOperators    #-}
@@ -21,7 +22,7 @@ type Env = Record
    , "logger" >: LogFunc
    ]
 
-instance HasLogFunc Env where
+instance Associate "logger" LogFunc xs => HasLogFunc (Record xs) where
   logFuncL = lens (view #logger) (\x y -> x & #logger `set` y)
 
 data DockwrightException

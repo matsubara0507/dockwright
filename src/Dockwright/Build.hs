@@ -15,25 +15,28 @@ import           Language.Docker
 build :: RIO Env Dockerfile
 build = do
   baseImage  <- buildBaseImage
-  dockerEnv <- buildDockerEnv
+  dockerEnv  <- buildDockerEnv
   template   <- readTemplateDockerFile
   pure $ baseImage <> dockerEnv <> template
 
 buildBaseImage :: RIO Env Dockerfile
 buildBaseImage = do
+  logDebug "build base image from config yaml."
   conf <- asks (view #base . view #config)
   pure . toDockerfile $
     from $ tagged (Text.unpack $ conf ^. #repo) (Text.unpack $ conf ^. #tag)
 
 buildDockerEnv :: RIO Env Dockerfile
 buildDockerEnv = do
+  logDebug "build appending env from config yaml."
   conf <- asks (view #env . view #config)
   toDockerfile . env .
     Map.toList . Map.mapKeys (map C.toUpper) <$> mapM fetchEnvVal conf
 
 readTemplateDockerFile :: RIO Env Dockerfile
 readTemplateDockerFile = do
-  filepath <- asks (view #template . view #config)
-  (parseString . Text.unpack <$> readFileUtf8 filepath) >>= \case
+  path <- asks (view #template . view #config)
+  logDebug (displayShow $ "read template: " <> path)
+  (parseString . Text.unpack <$> readFileUtf8 path) >>= \case
     Left err   -> throwM $ DockerfileParseError err
     Right file -> pure file
