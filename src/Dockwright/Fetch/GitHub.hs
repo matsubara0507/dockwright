@@ -24,11 +24,13 @@ fetchRelease' conf =
 fetchRelease ::
   MonadIO m => (Text, Text) -> m (Either DockwrightException Release)
 fetchRelease (owner, repo) =
-  liftIO . fmap latest $
-    runReq def (responseBody <$> req GET url NoReqBody jsonResponse h)
+  liftIO $ (latest <$> runReq def (responseBody <$> request)) `catch` handler
   where
+    request = req GET url NoReqBody jsonResponse h
     url = https "api.github.com" /: "repos" /: owner /: repo /: "releases"
     h = header "User-Agent" "Dockwright"
+    handler :: MonadUnliftIO m => HttpException -> m (Either DockwrightException a)
+    handler = pure . Left . FetchEnvError . tshow
 
 latest :: [Release] -> Either DockwrightException Release
 latest = maybe (Left $ FetchEnvError "no release") pure . listToMaybe

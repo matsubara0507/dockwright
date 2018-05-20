@@ -8,3 +8,4 @@ env:
     github:
       repo: wende/elchemy
       hook: release
+    # value: 0.7.2
