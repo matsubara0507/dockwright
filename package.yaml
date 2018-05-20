@@ -52,6 +52,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - dockwright
+    - gitrev
 
 tests:
   dockwright-test:
