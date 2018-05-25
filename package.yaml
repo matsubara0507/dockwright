@@ -34,7 +34,7 @@ dependencies:
 - base >= 4.7 && < 5
 - rio >= 0.1.1.0
 - data-default
-- extensible
+- extensible >= 0.4.9
 - language-docker
 - req
 - yaml
