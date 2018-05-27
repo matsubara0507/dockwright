@@ -88,7 +88,10 @@ runApp prog opts args = do
         let env = #config @= config
                <: #logger @= logger
                <: nil
-        runRIO env (prog opts args)
+        runRIO env (prog opts args `catch` handler)
+  where
+    handler :: DockwrightException -> m a
+    handler = error . show
 
 toBuilder :: String -> Builder
 toBuilder = encodeUtf8Builder . fromString
