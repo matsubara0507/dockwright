@@ -1,7 +1,12 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE OverloadedLabels #-}
 
-module Dockwright.Build where
+module Dockwright.Build
+  ( build
+  , buildBaseImage
+  , buildDockerEnv
+  , readTemplateDockerFile
+  ) where
 
 import           RIO
 import qualified RIO.Char            as C
@@ -30,8 +35,8 @@ buildDockerEnv :: RIO Env Dockerfile
 buildDockerEnv = do
   logDebug "build appending env from config yaml."
   conf <- asks (view #env . view #config)
-  toDockerfile . env .
-    Map.toList . Map.mapKeys (map C.toUpper) <$> mapM fetchEnvVal conf
+  toDockerfile . env . Map.toList .
+    Map.mapKeys (map C.toUpper) <$> mapWithKeyM fetchEnvVal conf
 
 readTemplateDockerFile :: RIO Env Dockerfile
 readTemplateDockerFile = do
@@ -40,3 +45,6 @@ readTemplateDockerFile = do
   (parseString . Text.unpack <$> readFileUtf8 path) >>= \case
     Left err   -> throwM $ DockerfileParseError err
     Right file -> pure file
+
+mapWithKeyM ::  Monad m => (k -> a -> m b) -> Map k a -> m (Map k b)
+mapWithKeyM f = sequence . Map.mapWithKey f

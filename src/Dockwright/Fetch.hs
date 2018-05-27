@@ -18,8 +18,8 @@ import           Dockwright.Data.Config
 import           Dockwright.Data.Env
 import           Dockwright.Fetch.GitHub
 
-fetchEnvVal :: DockVal -> RIO Env String
-fetchEnvVal val =
+fetchEnvVal :: String -> DockVal -> RIO Env String
+fetchEnvVal key val =
   maybe (throwM err) pure =<<
     hfoldrWithIndexFor
       (Proxy @ Fetch)
@@ -27,7 +27,7 @@ fetchEnvVal val =
       (pure Nothing)
       val
   where
-    err = FetchEnvError "there is no config to fetch env."
+    err = FetchEnvError (Text.pack $ "there is no config to fetch env: " <> key)
 
 class Fetch kv where
   fetch ::
@@ -39,7 +39,8 @@ instance Fetch ("github" >: Maybe GitHubConfig) where
     Nothing   -> pure Nothing
     Just conf -> case conf ^. #hook of
       "release" -> fetchRelease' conf
-      _         -> pure Nothing
+      key       ->
+        logWarn (display $ "unknown GitHub hook key:" <> key) >> pure Nothing
 
 instance Fetch ("value" >: Maybe Text) where
   fetch _ = pure . fmap Text.unpack
