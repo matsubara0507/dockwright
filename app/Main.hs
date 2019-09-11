@@ -2,7 +2,6 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE MultiWayIf       #-}
 {-# LANGUAGE OverloadedLabels #-}
-{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeOperators    #-}
 
 module Main where
@@ -12,17 +11,15 @@ import           RIO
 
 import           Data.Extensible
 import           Data.Extensible.GetOpt
-import           Data.Version           (Version)
-import qualified Data.Version           as Version
 import           Data.Yaml
 import           Dockwright.Build
 import           Dockwright.Data.Env
-import qualified GitHash
 import qualified Language.Docker        as Docker
+import qualified Version
 
 main :: IO ()
 main = withGetOpt "[options] [config-file]" info $ \opts args -> if
-  | opts ^. #version       -> hPutBuilder stdout (buildVersion version)
+  | opts ^. #version       -> hPutBuilder stdout (Version.build version)
   | isJust (opts ^. #echo) -> hPutBuilder stdout =<< getEnvInDockerfile opts args
   | otherwise              -> buildDockerFile opts args
   where
@@ -48,17 +45,6 @@ buildDockerFile = runApp $ \_opts _args -> do
   logDebug (displayShow $ "write Dockerfile: " <> opath)
   liftIO $ Docker.writeDockerFile (fromString opath) file
   logInfo "Build Sccuess!"
-
-buildVersion :: Version -> Builder
-buildVersion v = toBuilder $ unwords
-  [ "Version"
-  , Version.showVersion v ++ ","
-  , "Git revision"
-  , GitHash.giCommitDate gi
-  , "(" ++ show (GitHash.giCommitCount gi) ++ " commits)"
-  ]
-  where
-    gi = $$(GitHash.tGitInfoCwd)
 
 getEnvInDockerfile :: Record Options -> [String] -> IO Builder
 getEnvInDockerfile = runApp $ \opts _args -> do
@@ -93,6 +79,3 @@ runApp prog opts args = do
   where
     handler :: DockwrightException -> m a
     handler = error . show
-
-toBuilder :: String -> Builder
-toBuilder = encodeUtf8Builder . fromString
