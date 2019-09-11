@@ -33,10 +33,9 @@ default-extensions:
 dependencies:
 - base >= 4.7 && < 5
 - rio >= 0.1.1.0
-- data-default
-- extensible >= 0.4.9
+- extensible >= 0.6
 - language-docker
-- req
+- req >= 2.0
 - yaml
 
 library:
@@ -46,22 +45,14 @@ executables:
   dockwright:
     main:                Main.hs
     source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     dependencies:
     - dockwright
-    - gitrev
+    - githash
 
 tests:
   dockwright-test:
-    main:                Driver.hs
+    main:                Spec.hs
     source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     dependencies:
     - dockwright
     - tasty

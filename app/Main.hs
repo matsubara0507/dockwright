@@ -9,16 +9,15 @@ module Main where
 
 import           Paths_dockwright       (version)
 import           RIO
-import qualified RIO.Text               as Text
 
 import           Data.Extensible
 import           Data.Extensible.GetOpt
 import           Data.Version           (Version)
 import qualified Data.Version           as Version
 import           Data.Yaml
-import           Development.GitRev
 import           Dockwright.Build
 import           Dockwright.Data.Env
+import qualified GitHash
 import qualified Language.Docker        as Docker
 
 main :: IO ()
@@ -47,7 +46,7 @@ buildDockerFile = runApp $ \_opts _args -> do
   file <- build
   let opath = config ^. #output <> "/Dockerfile"
   logDebug (displayShow $ "write Dockerfile: " <> opath)
-  writeFileUtf8 opath (fromString $ Docker.prettyPrint file)
+  liftIO $ Docker.writeDockerFile (fromString opath) file
   logInfo "Build Sccuess!"
 
 buildVersion :: Version -> Builder
@@ -55,21 +54,23 @@ buildVersion v = toBuilder $ unwords
   [ "Version"
   , Version.showVersion v ++ ","
   , "Git revision"
-  , $(gitHash)
-  , "(" ++ $(gitCommitCount) ++ " commits)"
+  , GitHash.giCommitDate gi
+  , "(" ++ show (GitHash.giCommitCount gi) ++ " commits)"
   ]
+  where
+    gi = $$(GitHash.tGitInfoCwd)
 
 getEnvInDockerfile :: Record Options -> [String] -> IO Builder
 getEnvInDockerfile = runApp $ \opts _args -> do
   config <- asks (view #config)
   let opath = config ^. #output <> "/Dockerfile"
-      key   = fromMaybe "" (opts ^. #echo)
+      key   = fromMaybe "" (fromString <$> opts ^. #echo)
   logDebug (displayShow $ "read Dockerfile: " <> opath)
-  (Docker.parseString . Text.unpack <$> readFileUtf8 opath) >>= \case
+  (Docker.parseText <$> readFileUtf8 opath) >>= \case
     Left err   -> throwM $ DockerfileParseError err
     Right file -> do
       let vals = map (lookupEnv key . Docker.instruction) file
-      maybe (throwM $ EchoEnvError key) (pure . toBuilder) $ listToMaybe (catMaybes vals)
+      maybe (throwM $ EchoEnvError key) (pure . encodeUtf8Builder) $ listToMaybe (catMaybes vals)
   where
     lookupEnv key (Docker.Env env) = lookup key env
     lookupEnv _ _                  = Nothing
@@ -82,8 +83,8 @@ runApp prog opts args = do
     let path = fromMaybe "./.dockwright.yaml" $ listToMaybe args
     runRIO (#logger @== logger <: nil) $
       logDebug (displayShow $ "read config yaml: " <> path)
-    fmap decodeEither (readFileBinary path) >>= \case
-      Left  err    -> error $ "yaml parse error: " <> err
+    fmap decodeEither' (readFileBinary path) >>= \case
+      Left  err    -> error $ "yaml parse error: " <> prettyPrintParseException err
       Right config -> do
         let env = #config @= config
                <: #logger @= logger

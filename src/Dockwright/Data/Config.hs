@@ -11,7 +11,7 @@ type Config = Record
    '[ "output"   >: FilePath
     , "template" >: FilePath
     , "base"     >: BaseImageConfig
-    , "env"      >: Map String DockVal
+    , "env"      >: Map Text DockVal
     ]
 
 type BaseImageConfig = Record

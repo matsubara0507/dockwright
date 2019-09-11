@@ -6,7 +6,6 @@ module Dockwright.Fetch.GitHub where
 import           RIO
 import qualified RIO.Text               as Text
 
-import           Data.Default
 import           Dockwright.Data.Config (GitHubConfig)
 import           Dockwright.Data.Env    (DockwrightException (..))
 import           Dockwright.Data.GitHub
@@ -26,7 +25,7 @@ fetchRelease ::
   => (Text, Text) -> m (Either DockwrightException Release)
 fetchRelease (owner, repo) = do
   logDebug (display $ "fetch github: " <> tshow url)
-  liftIO $ (latest <$> runReq def (responseBody <$> request)) `catch` handler
+  liftIO $ (latest <$> runReq defaultHttpConfig (responseBody <$> request)) `catch` handler
   where
     request = req GET url NoReqBody jsonResponse h
     url = https "api.github.com" /: "repos" /: owner /: repo /: "releases"

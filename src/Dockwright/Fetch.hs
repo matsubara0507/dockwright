@@ -13,12 +13,11 @@ import           RIO
 import qualified RIO.Text                as Text
 
 import           Data.Extensible
-import           Data.Proxy
 import           Dockwright.Data.Config
 import           Dockwright.Data.Env
 import           Dockwright.Fetch.GitHub
 
-fetchEnvVal :: String -> DockVal -> RIO Env String
+fetchEnvVal :: Text -> DockVal -> RIO Env String
 fetchEnvVal key val =
   maybe (throwM err) pure =<<
     hfoldrWithIndexFor
@@ -27,12 +26,12 @@ fetchEnvVal key val =
       (pure Nothing)
       val
   where
-    err = FetchEnvError (Text.pack $ "there is no config to fetch env: " <> key)
+    err = FetchEnvError $ "there is no config to fetch env: " <> key
 
 class Fetch kv where
   fetch ::
     (MonadIO m, MonadReader env m, HasLogFunc env)
-    => proxy kv -> AssocValue kv -> m (Maybe String)
+    => proxy kv -> TargetOf kv -> m (Maybe String)
 
 instance Fetch ("github" >: Maybe GitHubConfig) where
   fetch _ = \case

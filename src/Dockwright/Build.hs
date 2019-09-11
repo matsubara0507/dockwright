@@ -9,13 +9,13 @@ module Dockwright.Build
   ) where
 
 import           RIO
-import qualified RIO.Char            as C
 import qualified RIO.Map             as Map
 import qualified RIO.Text            as Text
 
 import           Dockwright.Data.Env (DockwrightException (..), Env)
 import           Dockwright.Fetch    (fetchEnvVal)
-import           Language.Docker
+import           Language.Docker     (Dockerfile)
+import qualified Language.Docker     as Docker
 
 build :: RIO Env Dockerfile
 build = do
@@ -28,23 +28,28 @@ buildBaseImage :: RIO Env Dockerfile
 buildBaseImage = do
   logDebug "build base image from config yaml."
   conf <- asks (view #base . view #config)
-  pure . toDockerfile $
-    from $ tagged (Text.unpack $ conf ^. #repo) (Text.unpack $ conf ^. #tag)
+  let tag = Docker.tagged (fromText $ conf ^. #repo) (fromText $ conf ^. #tag)
+  pure $ Docker.toDockerfile (Docker.from tag)
 
 buildDockerEnv :: RIO Env Dockerfile
 buildDockerEnv = do
   logDebug "build appending env from config yaml."
   conf <- asks (view #env . view #config)
-  toDockerfile . env . Map.toList .
-    Map.mapKeys (map C.toUpper) <$> mapWithKeyM fetchEnvVal conf
+  Docker.toDockerfile . Docker.env . Map.toList .
+    Map.mapKeys Text.toUpper <$> mapWithKeyM fetchEnvVal' conf
+  where
+    fetchEnvVal' key = fmap fromString . fetchEnvVal key
 
 readTemplateDockerFile :: RIO Env Dockerfile
 readTemplateDockerFile = do
   path <- asks (view #template . view #config)
   logDebug (displayShow $ "read template: " <> path)
-  (parseString . Text.unpack <$> readFileUtf8 path) >>= \case
+  (Docker.parseText <$> readFileUtf8 path) >>= \case
     Left err   -> throwM $ DockerfileParseError err
     Right file -> pure file
 
 mapWithKeyM ::  Monad m => (k -> a -> m b) -> Map k a -> m (Map k b)
 mapWithKeyM f = sequence . Map.mapWithKey f
+
+fromText :: IsString s => Text -> s
+fromText = fromString . Text.unpack
