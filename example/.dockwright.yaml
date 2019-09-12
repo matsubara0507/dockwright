@@ -1,5 +1,7 @@
 output: "."
-template: "Dockerfile.template"
+template:
+  before_env: "Dockerfile.template.1"
+  after_env: "Dockerfile.template.2"
 base:
   repo: ubuntu
   tag: "18.04"

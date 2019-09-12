@@ -9,9 +9,14 @@ import           Data.Extensible
 
 type Config = Record
    '[ "output"   >: FilePath
-    , "template" >: FilePath
+    , "template" >: DockerfileTeamplate
     , "base"     >: BaseImageConfig
     , "env"      >: Map Text DockVal
+    ]
+
+type DockerfileTeamplate = Record
+   '[ "before_env" >: FilePath
+    , "after_env"  >: FilePath
     ]
 
 type BaseImageConfig = Record

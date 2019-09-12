@@ -20,10 +20,11 @@ import qualified Language.Docker     as Docker
 
 build :: RIO Env (Either BuildError Dockerfile)
 build = evalContT $ do
-  baseImage <- lift buildBaseImage
-  dockerEnv <- lift buildDockerEnv !?= exit'
-  template  <- lift readTemplateDockerFile !?= exit'
-  pure $ Right (baseImage <> dockerEnv <> template)
+  baseImage  <- lift buildBaseImage
+  beforeTepl <- lift readBeforeTemplateDockerFile !?= exit'
+  dockerEnv  <- lift buildDockerEnv !?= exit'
+  afterTmpl  <- lift readAftreTemplateDockerFile !?= exit'
+  pure $ Right (baseImage <> beforeTepl <> dockerEnv <> afterTmpl)
   where
     exit' = exit . pure . Left
 
@@ -44,11 +45,18 @@ buildDockerEnv = do
     fetchEnvVal' k a = lift (fetchEnvVal a) !?? exit (pure $ Left $ FetchEnvErr k)
     buildEnv = Docker.env . Map.toList . Map.mapKeys Text.toUpper
 
-readTemplateDockerFile :: RIO Env (Either BuildError Dockerfile)
-readTemplateDockerFile = do
-  path <- asks (view #template . view #config)
+readTemplateDockerFile :: FilePath -> RIO Env (Either BuildError Dockerfile)
+readTemplateDockerFile path = do
   logDebug (displayShow $ "read template: " <> path)
   mapLeft ParseErr . Docker.parseText <$> readFileUtf8 path
+
+readBeforeTemplateDockerFile :: RIO Env (Either BuildError Dockerfile)
+readBeforeTemplateDockerFile =
+  readTemplateDockerFile =<< asks (view #before_env . view #template . view #config)
+
+readAftreTemplateDockerFile :: RIO Env (Either BuildError Dockerfile)
+readAftreTemplateDockerFile =
+  readTemplateDockerFile =<< asks (view #after_env . view #template . view #config)
 
 mapWithKeyM ::  Monad m => (k -> a -> m b) -> Map k a -> m (Map k b)
 mapWithKeyM f = sequence . Map.mapWithKey f
