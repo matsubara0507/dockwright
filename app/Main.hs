@@ -8,26 +8,30 @@ module Main where
 
 import           Paths_dockwright       (version)
 import           RIO
+import qualified RIO.Text               as Text
 
 import           Data.Extensible
 import           Data.Extensible.GetOpt
-import           Data.Yaml
+import           Data.Fallible
+import qualified Data.Yaml              as Y
 import           Dockwright.Build
 import           Dockwright.Data.Env
 import qualified Language.Docker        as Docker
+import           Mix
+import           Mix.Plugin.Logger      as MixLogger
+import           Mix.Plugin.Logger.JSON as MixLogger
 import qualified Version
 
 main :: IO ()
 main = withGetOpt "[options] [config-file]" info $ \opts args -> if
   | opts ^. #version       -> hPutBuilder stdout (Version.build version)
-  | isJust (opts ^. #echo) -> hPutBuilder stdout =<< getEnvInDockerfile opts args
+  | isJust (opts ^. #echo) -> getEnvInDockerfile opts args
   | otherwise              -> buildDockerFile opts args
   where
-    info :: RecordOf (OptionDescr Identity) Options
     info
         = #verbose @= optFlag "v" ["verbose"] "Enable verbose mode"
        <: #version @= optFlag [] ["version"] "Show version"
-       <: #echo    @= optionOptArg (pure . listToMaybe . catMaybes) [] ["echo"] "ENV" "Show fetched env after build"
+       <: #echo    @= optionOptArg (pure . firstJust) [] ["echo"] "ENV" "Show fetched env after build"
        <: nil
 
 type Options =
@@ -37,45 +41,67 @@ type Options =
     ]
 
 buildDockerFile :: Record Options -> [String] -> IO ()
-buildDockerFile = runApp $ \_opts _args -> do
+buildDockerFile = runApp $ \_opts -> evalContT $ do
   config <- asks (view #config)
-  logDebug "build Dockerfile from template and config yaml."
-  file <- build
+  MixLogger.logDebugR "build Dockerfile from template and config yaml" nil
+  file <- lift build !?= exit . buildError
   let opath = config ^. #output <> "/Dockerfile"
-  logDebug (displayShow $ "write Dockerfile: " <> opath)
+  MixLogger.logDebugR "write Dockerfile" (#path @= opath <: nil)
   liftIO $ Docker.writeDockerFile (fromString opath) file
-  logInfo "Build Sccuess!"
+  MixLogger.logInfo "Build Sccuess!"
+  where
+    buildError err = MixLogger.logError (displayBuildError err)
 
-getEnvInDockerfile :: Record Options -> [String] -> IO Builder
-getEnvInDockerfile = runApp $ \opts _args -> do
-  config <- asks (view #config)
-  let opath = config ^. #output <> "/Dockerfile"
-      key   = fromMaybe "" (fromString <$> opts ^. #echo)
-  logDebug (displayShow $ "read Dockerfile: " <> opath)
-  (Docker.parseText <$> readFileUtf8 opath) >>= \case
-    Left err   -> throwM $ DockerfileParseError err
-    Right file -> do
-      let vals = map (lookupEnv key . Docker.instruction) file
-      maybe (throwM $ EchoEnvError key) (pure . encodeUtf8Builder) $ listToMaybe (catMaybes vals)
+getEnvInDockerfile :: Record Options -> [String] -> IO ()
+getEnvInDockerfile = runApp $ \opts -> evalContT $ do
+    config <- asks (view #config)
+    let opath = config ^. #output <> "/Dockerfile"
+        key   = fromMaybe "" (fromString <$> opts ^. #echo)
+    MixLogger.logDebugR "read Dockerfile" (#path @= opath <: nil)
+    file <- lift (Docker.parseText <$> readFileUtf8 opath) !?= exit . decodeError
+    let vals = map (lookupEnv key . Docker.instruction) file
+    env <- firstJust vals ??? exit (lookupError key)
+    MixLogger.logInfo $ display env
   where
     lookupEnv key (Docker.Env env) = lookup key env
     lookupEnv _ _                  = Nothing
 
+    decodeError err =
+      MixLogger.logError (fromString $ Docker.errorBundlePretty err)
+
+    lookupError key =
+      MixLogger.logError (fromString $ "echo env error: not found " <> Text.unpack key)
+
 runApp ::
-  (Record Options -> [String] -> RIO Env a) -> Record Options -> [String] -> IO a
-runApp prog opts args = do
-  logOpts <- logOptionsHandle stdout (opts ^. #verbose)
-  withLogFunc logOpts $ \logger -> do
-    let path = fromMaybe "./.dockwright.yaml" $ listToMaybe args
-    runRIO (#logger @== logger <: nil) $
-      logDebug (displayShow $ "read config yaml: " <> path)
-    fmap decodeEither' (readFileBinary path) >>= \case
-      Left  err    -> error $ "yaml parse error: " <> prettyPrintParseException err
-      Right config -> do
-        let env = #config @= config
-               <: #logger @= logger
-               <: nil
-        runRIO env (prog opts args `catch` handler)
+  (Record Options -> RIO Env ())
+  -> Record Options
+  -> [String]
+  -> IO ()
+runApp app opts args = Mix.run logging app'
   where
-    handler :: DockwrightException -> m a
-    handler = error . show
+    app' :: RIO (Record '["logger" >: LogFunc]) ()
+    app' = evalContT $ do
+      let path = fromMaybe "./.dockwright.yaml" $ listToMaybe args
+      MixLogger.logDebugR "read config yaml" (#path @= path <: nil)
+      config  <- lift (liftIO $ Y.decodeFileEither path) !?= exit . decodeError
+      logger' <- asks (view #logger)
+      let plugin = hsequence
+              $ #config <@=> pure config
+             <: #logger <@=> pure logger'
+             <: nil
+      lift $ Mix.run plugin (app opts)
+
+    decodeError err =
+      MixLogger.logError (fromString $ Y.prettyPrintParseException err)
+
+    logOpt
+        = #handle @= stdout
+       <: #verbose @= opts ^. #verbose
+       <: nil
+
+    logging = hsequence
+        $ #logger <@=> MixLogger.buildPlugin logOpt
+       <: nil
+
+firstJust :: [Maybe a] -> Maybe a
+firstJust = listToMaybe . catMaybes

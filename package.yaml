@@ -34,7 +34,10 @@ dependencies:
 - base >= 4.7 && < 5
 - rio >= 0.1.1.0
 - extensible >= 0.6
-- language-docker
+- fallible
+- language-docker >= 8.0
+- mix
+- mix-json-logger
 - req >= 2.0
 - yaml
 

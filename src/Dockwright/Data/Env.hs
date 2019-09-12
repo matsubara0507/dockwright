@@ -7,7 +7,10 @@
 
 module Dockwright.Data.Env
     ( Env
-    , DockwrightException (..)
+    , FetchError (..)
+    , displayFetchError
+    , BuildError (..)
+    , displayBuildError
     ) where
 
 import           RIO
@@ -17,25 +20,31 @@ import           Data.Extensible
 import           Dockwright.Data.Config (Config)
 import qualified Language.Docker        as Docker
 import qualified Language.Docker.Parser as Docker
+import           Network.HTTP.Req       (HttpException)
 
 type Env = Record
   '[ "config" >: Config
    , "logger" >: LogFunc
    ]
 
-instance Lookup xs "logger" LogFunc => HasLogFunc (Record xs) where
-  logFuncL = lens (view #logger) (\x y -> x & #logger `set` y)
+data FetchError
+   = HttpErr HttpException
+   | NoRelease
+   | UndefinedKey Text
+   | UndefinedConfig
 
-data DockwrightException
-    = DockerfileParseError Docker.Error
-    | FetchEnvError Text
-    | EchoEnvError Text
-    deriving (Typeable)
+displayFetchError :: IsString s => FetchError -> s
+displayFetchError = \case
+  HttpErr err      -> fromString $ "HTTP Error: " <> show err
+  NoRelease        -> "no release"
+  UndefinedKey key -> fromString $ "unknown GitHub hook key: " <> Text.unpack key
+  UndefinedConfig  -> "undefine cofig"
 
-instance Exception DockwrightException
+data BuildError
+  = FetchEnvErr Text
+  | ParseErr Docker.Error
 
-instance Show DockwrightException where
-  show = \case
-    DockerfileParseError err -> "dockerfile parse error: " <> Docker.errorBundlePretty err
-    FetchEnvError err        -> "fetch env error: " <> Text.unpack err
-    EchoEnvError key         -> "echo env error: not found " <> Text.unpack key
+displayBuildError :: IsString s => BuildError -> s
+displayBuildError = \case
+  FetchEnvErr key -> fromString $ "fetch env error: " <> Text.unpack key
+  ParseErr err    -> fromString $ Docker.errorBundlePretty err

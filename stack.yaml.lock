@@ -18,6 +18,52 @@ packages:
       sha256: 3b593e0d14e848e318e745555776ebb25210e5e3dec4fde5d3c08ab51ceddc62
   original:
     hackage: membership-0
+- completed:
+    size: 5203
+    url: https://github.com/matsubara0507/fallible/archive/dfbdce1a0b0c71bcfcea844c94f9cb815f071235.tar.gz
+    cabal-file:
+      size: 1312
+      sha256: 0e0032c34120a43bf1d446172162b546e36441c38f620afb24e9d447ed7ce6b6
+    name: fallible
+    version: 0.1.0
+    sha256: 8f68bdcbf1326b0c3a3f87137ee6c7ff38d80ab1775222eb5def51d2a4718911
+    pantry-tree:
+      size: 572
+      sha256: 44ee246ef81562894b52cc3843150e98be75b03b53723173fe3f4ec8f48e0375
+  original:
+    url: https://github.com/matsubara0507/fallible/archive/dfbdce1a0b0c71bcfcea844c94f9cb815f071235.tar.gz
+- completed:
+    size: 8235
+    subdir: mix
+    url: https://github.com/matsubara0507/mix.hs/archive/c6c303f9ddf4655a42804ee67d512af6d3b14e98.tar.gz
+    cabal-file:
+      size: 1110
+      sha256: 946df4a87070784d7ea659f6a3ad2f346f8cf31fea1135fc342feb5a303fa147
+    name: mix
+    version: 0.1.1
+    sha256: ca6fa0fa725f34c7d70943fe21fa71164d58e226c9ef1d52a7b344232c748d24
+    pantry-tree:
+      size: 598
+      sha256: 689bed307dc233a6c50e01f00295a079dc40a4291700646f3ca423d714ba35fc
+  original:
+    subdir: mix
+    url: https://github.com/matsubara0507/mix.hs/archive/c6c303f9ddf4655a42804ee67d512af6d3b14e98.tar.gz
+- completed:
+    size: 8235
+    subdir: mix-json-logger
+    url: https://github.com/matsubara0507/mix.hs/archive/c6c303f9ddf4655a42804ee67d512af6d3b14e98.tar.gz
+    cabal-file:
+      size: 1086
+      sha256: 4843982f1708e474ad68a9bddc213b5447fb285a71b8c8f720329768056b231b
+    name: mix-json-logger
+    version: 0.1.0
+    sha256: ca6fa0fa725f34c7d70943fe21fa71164d58e226c9ef1d52a7b344232c748d24
+    pantry-tree:
+      size: 334
+      sha256: 372be4778ce622e4ed87a5c77b4aa547a12da67c01570f2927f7a82ad9ec509d
+  original:
+    subdir: mix-json-logger
+    url: https://github.com/matsubara0507/mix.hs/archive/c6c303f9ddf4655a42804ee67d512af6d3b14e98.tar.gz
 snapshots:
 - completed:
     size: 523884

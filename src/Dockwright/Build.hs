@@ -12,17 +12,20 @@ import           RIO
 import qualified RIO.Map             as Map
 import qualified RIO.Text            as Text
 
-import           Dockwright.Data.Env (DockwrightException (..), Env)
+import           Data.Fallible
+import           Dockwright.Data.Env
 import           Dockwright.Fetch    (fetchEnvVal)
 import           Language.Docker     (Dockerfile)
 import qualified Language.Docker     as Docker
 
-build :: RIO Env Dockerfile
-build = do
-  baseImage  <- buildBaseImage
-  dockerEnv  <- buildDockerEnv
-  template   <- readTemplateDockerFile
-  pure $ baseImage <> dockerEnv <> template
+build :: RIO Env (Either BuildError Dockerfile)
+build = evalContT $ do
+  baseImage <- lift buildBaseImage
+  dockerEnv <- lift buildDockerEnv !?= exit'
+  template  <- lift readTemplateDockerFile !?= exit'
+  pure $ Right (baseImage <> dockerEnv <> template)
+  where
+    exit' = exit . pure . Left
 
 buildBaseImage :: RIO Env Dockerfile
 buildBaseImage = do
@@ -31,22 +34,21 @@ buildBaseImage = do
   let tag = Docker.tagged (fromText $ conf ^. #repo) (fromText $ conf ^. #tag)
   pure $ Docker.toDockerfile (Docker.from tag)
 
-buildDockerEnv :: RIO Env Dockerfile
+buildDockerEnv :: RIO Env (Either BuildError Dockerfile)
 buildDockerEnv = do
   logDebug "build appending env from config yaml."
   conf <- asks (view #env . view #config)
-  Docker.toDockerfile . Docker.env . Map.toList .
-    Map.mapKeys Text.toUpper <$> mapWithKeyM fetchEnvVal' conf
+  env  <- evalContT $ pure <$> mapWithKeyM fetchEnvVal' conf
+  pure $ Docker.toDockerfile . buildEnv <$> env
   where
-    fetchEnvVal' key = fmap fromString . fetchEnvVal key
+    fetchEnvVal' k a = lift (fetchEnvVal a) !?? exit (pure $ Left $ FetchEnvErr k)
+    buildEnv = Docker.env . Map.toList . Map.mapKeys Text.toUpper
 
-readTemplateDockerFile :: RIO Env Dockerfile
+readTemplateDockerFile :: RIO Env (Either BuildError Dockerfile)
 readTemplateDockerFile = do
   path <- asks (view #template . view #config)
   logDebug (displayShow $ "read template: " <> path)
-  (Docker.parseText <$> readFileUtf8 path) >>= \case
-    Left err   -> throwM $ DockerfileParseError err
-    Right file -> pure file
+  mapLeft ParseErr . Docker.parseText <$> readFileUtf8 path
 
 mapWithKeyM ::  Monad m => (k -> a -> m b) -> Map k a -> m (Map k b)
 mapWithKeyM f = sequence . Map.mapWithKey f
