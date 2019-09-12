@@ -2,6 +2,8 @@
 
 ## Unreleased changes
 
+## 1.0.0
+
 - Refactor: update to lts14.4 and Stack v2
     - update GHC to 8.6.5
     - update extensible to 0.6.1
