@@ -36,5 +36,6 @@ splitOn :: Char -> Text -> (Text, Text)
 splitOn c = second (Text.drop 1) . Text.span (/= c)
 
 stripByConfig :: GitHubConfig -> Text -> Text
-stripByConfig conf release =
-  fromMaybe release $ Text.stripPrefix (conf ^. #strip_prefix) release
+stripByConfig conf release = fromMaybe release $ do
+  prefix <- conf ^. #strip_prefix
+  Text.stripPrefix prefix release

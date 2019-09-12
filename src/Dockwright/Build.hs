@@ -9,14 +9,15 @@ module Dockwright.Build
   ) where
 
 import           RIO
-import qualified RIO.Map             as Map
-import qualified RIO.Text            as Text
+import qualified RIO.Map                as Map
+import qualified RIO.Text               as Text
 
 import           Data.Fallible
+import           Dockwright.Data.Config (DockerfileTeamplate)
 import           Dockwright.Data.Env
-import           Dockwright.Fetch    (fetchEnvVal)
-import           Language.Docker     (Dockerfile)
-import qualified Language.Docker     as Docker
+import           Dockwright.Fetch       (fetchEnvVal)
+import           Language.Docker        (Dockerfile)
+import qualified Language.Docker        as Docker
 
 build :: RIO Env (Either BuildError Dockerfile)
 build = evalContT $ do
@@ -50,13 +51,16 @@ readTemplateDockerFile path = do
   logDebug (displayShow $ "read template: " <> path)
   mapLeft ParseErr . Docker.parseText <$> readFileUtf8 path
 
+readTemplateDockerFile' ::
+  (DockerfileTeamplate -> Maybe FilePath) -> RIO Env (Either BuildError Dockerfile)
+readTemplateDockerFile' f =
+  maybe (pure $ Right []) readTemplateDockerFile =<< asks (f . view #template . view #config)
+
 readBeforeTemplateDockerFile :: RIO Env (Either BuildError Dockerfile)
-readBeforeTemplateDockerFile =
-  readTemplateDockerFile =<< asks (view #before_env . view #template . view #config)
+readBeforeTemplateDockerFile = readTemplateDockerFile' (view #before_env)
 
 readAftreTemplateDockerFile :: RIO Env (Either BuildError Dockerfile)
-readAftreTemplateDockerFile =
-  readTemplateDockerFile =<< asks (view #after_env . view #template . view #config)
+readAftreTemplateDockerFile = readTemplateDockerFile' (view #after_env)
 
 mapWithKeyM ::  Monad m => (k -> a -> m b) -> Map k a -> m (Map k b)
 mapWithKeyM f = sequence . Map.mapWithKey f

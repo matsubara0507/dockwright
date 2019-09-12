@@ -15,8 +15,8 @@ type Config = Record
     ]
 
 type DockerfileTeamplate = Record
-   '[ "before_env" >: FilePath
-    , "after_env"  >: FilePath
+   '[ "before_env" >: Maybe FilePath
+    , "after_env"  >: Maybe FilePath
     ]
 
 type BaseImageConfig = Record
@@ -32,5 +32,5 @@ type DockVal = Record
 type GitHubConfig = Record
    '[ "repo"         >: Text
     , "hook"         >: Text
-    , "strip_prefix" >: Text
+    , "strip_prefix" >: Maybe Text
     ]
