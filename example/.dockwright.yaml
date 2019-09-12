@@ -1,0 +1,11 @@
+output: "."
+template: "Dockerfile.template"
+base:
+  repo: ubuntu
+  tag: "18.04"
+env:
+  stack_version:
+    github:
+      repo: commercialhaskell/stack
+      hook: release
+      strip_prefix: v

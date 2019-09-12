@@ -15,7 +15,7 @@ fetchRelease' ::
   (MonadUnliftIO m, MonadReader e m, HasLogFunc e)
   => GitHubConfig -> m (Either FetchError Text)
 fetchRelease' conf =
-  fmap (view #tag_name) <$> fetchRelease (splitOn '/' $ conf ^. #repo)
+  fmap (stripByConfig conf . view #tag_name) <$> fetchRelease (splitOn '/' $ conf ^. #repo)
 
 fetchRelease ::
   (MonadUnliftIO m, MonadReader e m, HasLogFunc e)
@@ -34,3 +34,7 @@ latest = maybe (Left NoRelease) pure . listToMaybe
 
 splitOn :: Char -> Text -> (Text, Text)
 splitOn c = second (Text.drop 1) . Text.span (/= c)
+
+stripByConfig :: GitHubConfig -> Text -> Text
+stripByConfig conf release =
+  fromMaybe release $ Text.stripPrefix (conf ^. #strip_prefix) release

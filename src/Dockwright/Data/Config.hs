@@ -25,6 +25,7 @@ type DockVal = Record
     ]
 
 type GitHubConfig = Record
-   '[ "repo" >: Text
-    , "hook" >: Text
+   '[ "repo"         >: Text
+    , "hook"         >: Text
+    , "strip_prefix" >: Text
     ]
