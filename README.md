@@ -1,5 +1,9 @@
 # dockwright
 
+[![Build Status](https://travis-ci.com/matsubara0507/dockwright.svg?branch=master)](https://travis-ci.com/matsubara0507/dockwright)
+[![](https://images.microbadger.com/badges/image/matsubara0507/dockwright.svg)](https://microbadger.com/images/matsubara0507/dockwright "Get your own image badge on microbadger.com")
+
+
 CLI for building Dockerfile from template and config yaml.
 
 see [example](example)
