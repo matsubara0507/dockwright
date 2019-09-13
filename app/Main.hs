@@ -62,7 +62,7 @@ getEnvInDockerfile = runApp $ \opts -> evalContT $ do
         key   = fromMaybe "" (fromString <$> opts ^. #echo)
     MixLogger.logDebugR "read Dockerfile" (#path @= opath <: nil)
     file <- lift (Docker.parseText <$> readFileUtf8 opath) !?= exit . decodeError
-    let vals = map (lookupEnv key . Docker.instruction) file
+    let vals = map (lookupEnv (Text.toUpper key) . Docker.instruction) file
     env <- firstJust vals ??? exit (lookupError key)
     MixLogger.logInfo $ display env
   where
