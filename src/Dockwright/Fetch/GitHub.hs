@@ -6,9 +6,11 @@ module Dockwright.Fetch.GitHub where
 import           RIO
 import qualified RIO.Text               as Text
 
-import           Dockwright.Data.Config (GitHubConfig)
+import           Data.Extensible
+import           Dockwright.Data.Config (GitHubConfig, splitOn)
 import           Dockwright.Data.Env
 import           Dockwright.Data.GitHub
+import           Mix.Plugin.Logger.JSON as MixLogger
 import           Network.HTTP.Req
 
 fetchRelease' ::
@@ -21,7 +23,7 @@ fetchRelease ::
   (MonadUnliftIO m, MonadReader e m, HasLogFunc e)
   => (Text, Text) -> m (Either FetchError Release)
 fetchRelease (owner, repo) = do
-  logDebug (display $ "fetch github: " <> tshow url)
+  MixLogger.logDebugR "fetch release from github" (#url @= tshow url <: nil)
   (latest <$> runReq defaultHttpConfig (responseBody <$> request)) `catch` handler
   where
     request = req GET url NoReqBody jsonResponse h
@@ -31,9 +33,6 @@ fetchRelease (owner, repo) = do
 
 latest :: [Release] -> Either FetchError Release
 latest = maybe (Left NoRelease) pure . listToMaybe
-
-splitOn :: Char -> Text -> (Text, Text)
-splitOn c = second (Text.drop 1) . Text.span (/= c)
 
 stripByConfig :: GitHubConfig -> Text -> Text
 stripByConfig conf release = fromMaybe release $ do

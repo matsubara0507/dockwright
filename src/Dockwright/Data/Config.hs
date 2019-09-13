@@ -4,11 +4,13 @@
 module Dockwright.Data.Config where
 
 import           RIO
+import qualified RIO.Text        as Text
 
 import           Data.Extensible
 
 type Config = Record
-   '[ "output"   >: FilePath
+   '[ "image"    >: Text
+    , "output"   >: FilePath
     , "template" >: DockerfileTeamplate
     , "base"     >: BaseImageConfig
     , "env"      >: Map Text DockVal
@@ -34,3 +36,6 @@ type GitHubConfig = Record
     , "hook"         >: Text
     , "strip_prefix" >: Maybe Text
     ]
+
+splitOn :: Char -> Text -> (Text, Text)
+splitOn c = second (Text.drop 1) . Text.span (/= c)

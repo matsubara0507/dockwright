@@ -8,6 +8,7 @@ module Main where
 
 import           Paths_dockwright       (version)
 import           RIO
+import qualified RIO.List               as L
 import qualified RIO.Text               as Text
 
 import           Data.Extensible
@@ -25,18 +26,21 @@ main :: IO ()
 main = withGetOpt "[options] [config-file]" info $ \opts args -> if
   | opts ^. #version       -> hPutBuilder stdout (Version.build version)
   | isJust (opts ^. #echo) -> getEnvInDockerfile opts args
+  | opts ^. #tags          -> fetchTagsByDockerHub opts args
   | otherwise              -> buildDockerFile opts args
   where
     info
         = #verbose @= optFlag "v" ["verbose"] "Enable verbose mode"
        <: #version @= optFlag [] ["version"] "Show version"
        <: #echo    @= optionOptArg (pure . firstJust) [] ["echo"] "ENV" "Show fetched env after build"
+       <: #tags    @= optFlag [] ["tags"] "Fetch docker image tags from DockerHub"
        <: nil
 
 type Options =
    '[ "verbose" >: Bool
     , "version" >: Bool
     , "echo"    >: Maybe String
+    , "tags"    >: Bool
     ]
 
 buildDockerFile :: Record Options -> [String] -> IO ()
@@ -70,6 +74,16 @@ getEnvInDockerfile = runApp $ \opts -> evalContT $ do
 
     lookupError key =
       MixLogger.logError (fromString $ "echo env error: not found " <> Text.unpack key)
+
+fetchTagsByDockerHub :: Record Options -> [String] -> IO ()
+fetchTagsByDockerHub = runApp $ \_opts -> evalContT $ do
+  imageName <- asks (view #image . view #config)
+  tags <- lift (Dockwright.fetchTags imageName) !?= exit . fetchError
+  forM_ (reverse $ L.sortOn (view #last_updated) tags) $ \tag ->
+    MixLogger.logInfo $ display (tag ^. #name)
+  where
+    fetchError err =
+      MixLogger.logError (fromString $ Dockwright.displayFetchError err)
 
 runApp ::
   (Record Options -> RIO Dockwright.Env ())

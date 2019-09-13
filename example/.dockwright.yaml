@@ -1,3 +1,4 @@
+image: codesimple/elm
 output: "."
 template:
   before_env: "Dockerfile.template.1"

@@ -11,7 +11,8 @@ import           Dockwright.Data.Env
 
 testConfig :: Config
 testConfig
-    = #output   @= "."
+    = #image    @= "matsubara0507/dockwright"
+   <: #output   @= "."
    <: #template @= template
    <: #base     @= (#repo @= "debian" <: #tag @= "latest" <: nil)
    <: #env      @= Map.fromList [("test1", testDockVal)]
