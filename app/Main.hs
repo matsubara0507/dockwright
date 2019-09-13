@@ -14,8 +14,7 @@ import           Data.Extensible
 import           Data.Extensible.GetOpt
 import           Data.Fallible
 import qualified Data.Yaml              as Y
-import           Dockwright.Build
-import           Dockwright.Data.Env
+import qualified Dockwright
 import qualified Language.Docker        as Docker
 import           Mix
 import           Mix.Plugin.Logger      as MixLogger
@@ -44,13 +43,13 @@ buildDockerFile :: Record Options -> [String] -> IO ()
 buildDockerFile = runApp $ \_opts -> evalContT $ do
   config <- asks (view #config)
   MixLogger.logDebugR "build Dockerfile from template and config yaml" nil
-  file <- lift build !?= exit . buildError
+  file <- lift Dockwright.build !?= exit . buildError
   let opath = config ^. #output <> "/Dockerfile"
   MixLogger.logDebugR "write Dockerfile" (#path @= opath <: nil)
   liftIO $ Docker.writeDockerFile (fromString opath) file
   MixLogger.logInfo "Build Sccuess!"
   where
-    buildError err = MixLogger.logError (displayBuildError err)
+    buildError err = MixLogger.logError (Dockwright.displayBuildError err)
 
 getEnvInDockerfile :: Record Options -> [String] -> IO ()
 getEnvInDockerfile = runApp $ \opts -> evalContT $ do
@@ -73,7 +72,7 @@ getEnvInDockerfile = runApp $ \opts -> evalContT $ do
       MixLogger.logError (fromString $ "echo env error: not found " <> Text.unpack key)
 
 runApp ::
-  (Record Options -> RIO Env ())
+  (Record Options -> RIO Dockwright.Env ())
   -> Record Options
   -> [String]
   -> IO ()
