@@ -8,6 +8,18 @@ CLI for building Dockerfile from template and config yaml.
 
 see [example](example)
 
+```
+$ dockwright --help
+unrecognized option `--help'
+
+dockwright [options] [config-file]
+  -v  --verbose     Enable verbose mode
+      --version     Show version
+      --echo[=ENV]  Show fetched env after build
+      --tags        Fetch docker image tags from DockerHub
+      --new-tags    Fetch new tags from tags config
+```
+
 ## Development
 
 build docker image

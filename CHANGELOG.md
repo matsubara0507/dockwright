@@ -13,3 +13,6 @@
 - Refactor: use mix.hs and fallible
 - Feat: strip prefix for release
 - Feat: before/after template
+- Modify: `--echo` can use lower case
+- Feat: `--tags` command
+- Feat: `--new-tags` command
