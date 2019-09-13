@@ -75,3 +75,4 @@ tests:
     - dockwright
     - tasty
     - tasty-hspec
+    - tasty-hunit
