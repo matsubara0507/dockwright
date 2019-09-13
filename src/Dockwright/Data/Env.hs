@@ -1,10 +1,3 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE OverloadedLabels #-}
-{-# LANGUAGE TypeOperators    #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
 module Dockwright.Data.Env
     ( Env
     , FetchError (..)

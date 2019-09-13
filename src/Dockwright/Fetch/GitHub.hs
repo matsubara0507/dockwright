@@ -1,6 +1,3 @@
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE OverloadedLabels #-}
-
 module Dockwright.Fetch.GitHub where
 
 import           RIO

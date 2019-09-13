@@ -1,9 +1,3 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE OverloadedLabels #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators    #-}
-
 module Dockwright.Fetch
   ( fetchEnvVal
   , Fetch (..)

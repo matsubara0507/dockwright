@@ -1,7 +1,3 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE OverloadedLabels #-}
-{-# LANGUAGE TypeOperators    #-}
-
 module Dockwright.Data.Config where
 
 import           RIO
@@ -51,7 +47,7 @@ type ValTagsConfig = Record
     ]
 
 toValTagsConfig :: TagsConfig -> ValTagsConfig
-toValTagsConfig conf = shrink conf
+toValTagsConfig = shrink
 
 type RefTagsConfig = Record
    '[ "ref"    >: Text
@@ -60,7 +56,7 @@ type RefTagsConfig = Record
 
 toRefTagsConfig :: TagsConfig -> RefTagsConfig
 toRefTagsConfig conf
-    = #ref @= (fromMaybe "" $ conf ^. #ref)
+    = #ref @= fromMaybe "" (conf ^. #ref)
    <: #keys @= (conf ^. #keys)
    <: nil
 

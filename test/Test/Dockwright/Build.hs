@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedLabels #-}
-
 module Test.Dockwright.Build where
 
 import           RIO

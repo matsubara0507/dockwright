@@ -1,10 +1,3 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE MultiWayIf       #-}
-{-# LANGUAGE OverloadedLabels #-}
-{-# LANGUAGE TupleSections    #-}
-{-# LANGUAGE TypeOperators    #-}
-
 module Main where
 
 import           Paths_dockwright       (version)
@@ -64,7 +57,7 @@ getEnvInDockerfile :: Record Options -> [String] -> IO ()
 getEnvInDockerfile = runApp $ \opts -> evalContT $ do
     config <- asks (view #config)
     let opath = config ^. #output <> "/Dockerfile"
-        key   = fromMaybe "" (fromString <$> opts ^. #echo)
+        key   = maybe "" fromString (opts ^. #echo)
     MixLogger.logDebugR "read Dockerfile" (#path @= opath <: nil)
     file <- lift (Docker.parseText <$> readFileUtf8 opath) !?= exit . decodeError
     let vals = map (lookupEnv (Text.toUpper key) . Docker.instruction) file
@@ -95,7 +88,7 @@ fetchNewTags = runApp $ \_opts -> evalContT $ do
   config <- asks (view #config)
   currentTags <- lift (Dockwright.fetchImageTags $ config ^. #image) !?= exit . fetchError
 
-  tags <- forM (config ^. #tags) $ \tagConf -> do
+  tags <- forM (config ^. #tags) $ \tagConf ->
     fmap (fromMaybe False $ tagConf ^. #always,) $
       lift (Dockwright.collectTags tagConf) !?= (\e -> tagsError e >> pure [])
 
@@ -115,7 +108,7 @@ fetchNewTags = runApp $ \_opts -> evalContT $ do
     tagsError err =
       MixLogger.logError (fromString $ Dockwright.displayTagsError err)
 
-    mapBoth = join (***) (map (view #name) . concat . map snd)
+    mapBoth = join (***) (map (view #name) . concatMap snd)
 
 runApp ::
   (Record Options -> RIO Dockwright.Env ())

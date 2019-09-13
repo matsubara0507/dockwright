@@ -22,12 +22,26 @@ ghc-options:
 default-extensions:
 - NoImplicitPrelude
 
+- BlockArguments
 - ConstraintKinds
+- DataKinds
 - FlexibleContexts
 - FlexibleInstances
+- GeneralizedNewtypeDeriving
+- LambdaCase
+- MultiWayIf
+- NumericUnderscores
+- OverloadedLabels
 - OverloadedStrings
 - PolyKinds
+- QuasiQuotes
+- RankNTypes
+- StandaloneDeriving
+- TemplateHaskell
+- TupleSections
+- TypeApplications
 - TypeFamilies
+- TypeOperators
 - TypeSynonymInstances
 
 dependencies:

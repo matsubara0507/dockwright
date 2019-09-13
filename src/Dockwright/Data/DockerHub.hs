@@ -1,7 +1,3 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE OverloadedLabels #-}
-{-# LANGUAGE TypeOperators    #-}
-
 module Dockwright.Data.DockerHub where
 
 import           RIO

@@ -1,8 +1,3 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NumericUnderscores #-}
-{-# LANGUAGE OverloadedLabels   #-}
-
 module Dockwright.Fetch.DockerHub where
 
 import           RIO

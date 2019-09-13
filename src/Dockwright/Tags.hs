@@ -1,7 +1,3 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE OverloadedLabels #-}
-
 module Dockwright.Tags where
 
 import           RIO

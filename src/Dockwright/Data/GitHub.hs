@@ -1,6 +1,3 @@
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators #-}
-
 module Dockwright.Data.GitHub where
 
 import           RIO
