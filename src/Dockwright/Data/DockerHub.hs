@@ -1,5 +1,6 @@
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE TypeOperators    #-}
 
 module Dockwright.Data.DockerHub where
 
@@ -17,3 +18,9 @@ type Tag = Record
     '[ "name"         >: Text
      , "last_updated" >: Maybe Text
      ]
+
+toTag :: Text -> Tag
+toTag name
+    = #name @= name
+   <: #last_updated @= Nothing
+   <: nil

@@ -11,6 +11,8 @@ module Dockwright.Data.Env
     , displayFetchError
     , BuildError (..)
     , displayBuildError
+    , TagsError (..)
+    , displayTagsError
     ) where
 
 import           RIO
@@ -32,6 +34,7 @@ data FetchError
    | NoRelease
    | UndefinedKey Text
    | UndefinedConfig
+   | UrlParseErr Text
 
 displayFetchError :: IsString s => FetchError -> s
 displayFetchError = \case
@@ -39,6 +42,7 @@ displayFetchError = \case
   NoRelease        -> "no release"
   UndefinedKey key -> fromString $ "unknown GitHub hook key: " <> Text.unpack key
   UndefinedConfig  -> "undefine cofig"
+  UrlParseErr url  -> fromString $ "can not parse url: " <> Text.unpack url
 
 data BuildError
   = FetchEnvErr Text
@@ -48,3 +52,12 @@ displayBuildError :: IsString s => BuildError -> s
 displayBuildError = \case
   FetchEnvErr key -> fromString $ "fetch env error: " <> Text.unpack key
   ParseErr err    -> fromString $ Docker.errorBundlePretty err
+
+data TagsError
+  = FetchErr FetchError
+  | UndefinedType Text
+
+displayTagsError :: IsString s => TagsError -> s
+displayTagsError = \case
+  FetchErr err      -> displayFetchError err
+  UndefinedType typ -> fromString $ "undefined tags config type: " <> Text.unpack typ

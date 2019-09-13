@@ -2,12 +2,14 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE MultiWayIf       #-}
 {-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE TupleSections    #-}
 {-# LANGUAGE TypeOperators    #-}
 
 module Main where
 
 import           Paths_dockwright       (version)
 import           RIO
+import           RIO.List               ((\\))
 import qualified RIO.List               as L
 import qualified RIO.Text               as Text
 
@@ -27,20 +29,23 @@ main = withGetOpt "[options] [config-file]" info $ \opts args -> if
   | opts ^. #version       -> hPutBuilder stdout (Version.build version)
   | isJust (opts ^. #echo) -> getEnvInDockerfile opts args
   | opts ^. #tags          -> fetchTagsByDockerHub opts args
+  | opts ^. #new_tags      -> fetchNewTags opts args
   | otherwise              -> buildDockerFile opts args
   where
     info
-        = #verbose @= optFlag "v" ["verbose"] "Enable verbose mode"
-       <: #version @= optFlag [] ["version"] "Show version"
-       <: #echo    @= optionOptArg (pure . firstJust) [] ["echo"] "ENV" "Show fetched env after build"
-       <: #tags    @= optFlag [] ["tags"] "Fetch docker image tags from DockerHub"
+        = #verbose  @= optFlag "v" ["verbose"] "Enable verbose mode"
+       <: #version  @= optFlag [] ["version"] "Show version"
+       <: #echo     @= optionOptArg (pure . firstJust) [] ["echo"] "ENV" "Show fetched env after build"
+       <: #tags     @= optFlag [] ["tags"] "Fetch docker image tags from DockerHub"
+       <: #new_tags @= optFlag [] ["new-tags"] "Fetch new tags from tags config"
        <: nil
 
 type Options =
-   '[ "verbose" >: Bool
-    , "version" >: Bool
-    , "echo"    >: Maybe String
-    , "tags"    >: Bool
+   '[ "verbose"  >: Bool
+    , "version"  >: Bool
+    , "echo"     >: Maybe String
+    , "tags"     >: Bool
+    , "new_tags" >: Bool
     ]
 
 buildDockerFile :: Record Options -> [String] -> IO ()
@@ -78,12 +83,39 @@ getEnvInDockerfile = runApp $ \opts -> evalContT $ do
 fetchTagsByDockerHub :: Record Options -> [String] -> IO ()
 fetchTagsByDockerHub = runApp $ \_opts -> evalContT $ do
   imageName <- asks (view #image . view #config)
-  tags <- lift (Dockwright.fetchTags imageName) !?= exit . fetchError
+  tags <- lift (Dockwright.fetchImageTags imageName) !?= exit . fetchError
   forM_ (reverse $ L.sortOn (view #last_updated) tags) $ \tag ->
     MixLogger.logInfo $ display (tag ^. #name)
   where
     fetchError err =
       MixLogger.logError (fromString $ Dockwright.displayFetchError err)
+
+fetchNewTags :: Record Options -> [String] -> IO ()
+fetchNewTags = runApp $ \_opts -> evalContT $ do
+  config <- asks (view #config)
+  currentTags <- lift (Dockwright.fetchImageTags $ config ^. #image) !?= exit . fetchError
+
+  tags <- forM (config ^. #tags) $ \tagConf -> do
+    fmap (fromMaybe False $ tagConf ^. #always,) $
+      lift (Dockwright.collectTags tagConf) !?= (\e -> tagsError e >> pure [])
+
+  let (forceTagNames, tagNames) = L.nub <$> mapBoth (L.partition fst tags)
+      currentTagsNames = view #name <$> currentTags
+      newTagNames = L.nub $ L.sort $ forceTagNames ++ (tagNames \\ currentTagsNames)
+  MixLogger.logDebugR "collected tag names"
+      $ #current   @= currentTagsNames
+     <: #updatable @= tagNames
+     <: #force     @= forceTagNames
+     <: nil
+
+  forM_ newTagNames $ \tagName -> MixLogger.logInfo $ display tagName
+  where
+    fetchError err =
+      MixLogger.logError (fromString $ Dockwright.displayFetchError err)
+    tagsError err =
+      MixLogger.logError (fromString $ Dockwright.displayTagsError err)
+
+    mapBoth = join (***) (map (view #name) . concat . map snd)
 
 runApp ::
   (Record Options -> RIO Dockwright.Env ())

@@ -1,4 +1,4 @@
-image: codesimple/elm
+image: matsubara0507/stack-build
 output: "."
 template:
   before_env: "Dockerfile.template.1"
@@ -12,3 +12,16 @@ env:
       repo: commercialhaskell/stack
       hook: release
       strip_prefix: v
+tags:
+- type: value
+  keys:
+  - latest
+  always: true
+- type: refer
+  ref: https://www.stackage.org/download/snapshots.json
+  keys:
+  - nightly
+  - lts
+  - lts-14
+  - lts-13
+  - lts-12

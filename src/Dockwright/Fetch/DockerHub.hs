@@ -15,10 +15,10 @@ import           Dockwright.Data.Env
 import           Mix.Plugin.Logger.JSON    as MixLogger
 import           Network.HTTP.Req
 
-fetchTags ::
+fetchImageTags ::
   (MonadUnliftIO m, MonadReader e m, HasLogFunc e)
   => Text -> m (Either FetchError [Tag])
-fetchTags imageName = do
+fetchImageTags imageName = do
   MixLogger.logDebugR "fetch tags from DockerHub" (#url @= tshow url <: nil)
   fmap Right (fetchTagsR [] (Just $ "page" =: (1 :: Int))) `catch` handler
   where

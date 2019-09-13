@@ -1,5 +1,6 @@
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE TypeOperators    #-}
 
 module Dockwright.Data.Config where
 
@@ -14,6 +15,7 @@ type Config = Record
     , "template" >: DockerfileTeamplate
     , "base"     >: BaseImageConfig
     , "env"      >: Map Text DockVal
+    , "tags"     >: [TagsConfig]
     ]
 
 type DockerfileTeamplate = Record
@@ -36,6 +38,31 @@ type GitHubConfig = Record
     , "hook"         >: Text
     , "strip_prefix" >: Maybe Text
     ]
+
+type TagsConfig = Record
+   '[ "type"   >: Text
+    , "ref"    >: Maybe Text
+    , "keys"   >: [Text]
+    , "always" >: Maybe Bool
+    ]
+
+type ValTagsConfig = Record
+   '[ "keys"   >: [Text]
+    ]
+
+toValTagsConfig :: TagsConfig -> ValTagsConfig
+toValTagsConfig conf = shrink conf
+
+type RefTagsConfig = Record
+   '[ "ref"    >: Text
+    , "keys"   >: [Text]
+    ]
+
+toRefTagsConfig :: TagsConfig -> RefTagsConfig
+toRefTagsConfig conf
+    = #ref @= (fromMaybe "" $ conf ^. #ref)
+   <: #keys @= (conf ^. #keys)
+   <: nil
 
 splitOn :: Char -> Text -> (Text, Text)
 splitOn c = second (Text.drop 1) . Text.span (/= c)

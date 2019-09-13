@@ -16,6 +16,7 @@ testConfig
    <: #template @= template
    <: #base     @= (#repo @= "debian" <: #tag @= "latest" <: nil)
    <: #env      @= Map.fromList [("test1", testDockVal)]
+   <: #tags     @= []
    <: nil
 
 template :: DockerfileTeamplate
