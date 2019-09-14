@@ -16,3 +16,5 @@
 - Modify: `--echo` can use lower case
 - Feat: `--tags` command
 - Feat: `--new-tags` command
+- Feat: generate default config
+- Feat: `--help` option
