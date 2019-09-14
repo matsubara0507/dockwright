@@ -34,17 +34,18 @@ displayFetchError = \case
   HttpErr err      -> fromString $ "HTTP Error: " <> show err
   NoRelease        -> "no release"
   UndefinedKey key -> fromString $ "unknown GitHub hook key: " <> Text.unpack key
-  UndefinedConfig  -> "undefine cofig"
+  UndefinedConfig  -> "undefined config"
   UrlParseErr url  -> fromString $ "can not parse url: " <> Text.unpack url
 
 data BuildError
-  = FetchEnvErr Text
+  = FetchEnvErr Text FetchError
   | ParseErr Docker.Error
 
 displayBuildError :: IsString s => BuildError -> s
 displayBuildError = \case
-  FetchEnvErr key -> fromString $ "fetch env error: " <> Text.unpack key
-  ParseErr err    -> fromString $ Docker.errorBundlePretty err
+  FetchEnvErr key err -> fromString $
+    "fetch env error with key: " <> Text.unpack key <> ": " <> displayFetchError err
+  ParseErr err        -> fromString $ Docker.errorBundlePretty err
 
 data TagsError
   = FetchErr FetchError

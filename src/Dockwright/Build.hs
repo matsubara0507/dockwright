@@ -40,7 +40,7 @@ buildDockerEnv = do
   env  <- evalContT $ pure <$> mapWithKeyM fetchEnvVal' conf
   pure $ Docker.toDockerfile . buildEnv <$> env
   where
-    fetchEnvVal' k a = lift (fetchEnvVal a) !?? exit (pure $ Left $ FetchEnvErr k)
+    fetchEnvVal' k a = lift (fetchEnvVal a) !?= exit . pure . Left . FetchEnvErr k
     buildEnv = Docker.env . Map.toList . Map.mapKeys Text.toUpper
 
 readTemplateDockerFile :: FilePath -> RIO Env (Either BuildError Dockerfile)
