@@ -2,6 +2,7 @@ module Main where
 
 import           Paths_dockwright       (version)
 import           RIO
+import qualified RIO.ByteString         as B
 import           RIO.List               ((\\))
 import qualified RIO.List               as L
 import qualified RIO.Text               as Text
@@ -20,6 +21,7 @@ import qualified Version
 main :: IO ()
 main = withGetOpt "[options] [config-file]" info $ \opts args -> if
   | opts ^. #version       -> hPutBuilder stdout (Version.build version)
+  | opts ^. #default       -> B.putStr (Dockwright.defaultConfig' <> "\n")
   | isJust (opts ^. #echo) -> getEnvInDockerfile opts args
   | opts ^. #tags          -> fetchTagsByDockerHub opts args
   | opts ^. #new_tags      -> fetchNewTags opts args
@@ -28,6 +30,7 @@ main = withGetOpt "[options] [config-file]" info $ \opts args -> if
     info
         = #verbose  @= optFlag "v" ["verbose"] "Enable verbose mode"
        <: #version  @= optFlag [] ["version"] "Show version"
+       <: #default  @= optFlag "d" ["default"] "Dump default config"
        <: #echo     @= optionOptArg (pure . firstJust) [] ["echo"] "ENV" "Show fetched env after build"
        <: #tags     @= optFlag [] ["tags"] "Fetch docker image tags from DockerHub"
        <: #new_tags @= optFlag [] ["new-tags"] "Fetch new tags from tags config"
@@ -36,6 +39,7 @@ main = withGetOpt "[options] [config-file]" info $ \opts args -> if
 type Options =
    '[ "verbose"  >: Bool
     , "version"  >: Bool
+    , "default"  >: Bool
     , "echo"     >: Maybe String
     , "tags"     >: Bool
     , "new_tags" >: Bool
@@ -121,7 +125,7 @@ runApp app opts args = Mix.run logging app'
     app' = evalContT $ do
       let path = fromMaybe "./.dockwright.yaml" $ listToMaybe args
       MixLogger.logDebugR "read config yaml" (#path @= path <: nil)
-      config  <- lift (liftIO $ Y.decodeFileEither path) !?= exit . decodeError
+      config  <- Dockwright.readConfig path !?= exit . decodeError
       logger' <- asks (view #logger)
       let plugin = hsequence
               $ #config <@=> pure config

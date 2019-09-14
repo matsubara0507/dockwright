@@ -36,7 +36,7 @@ buildBaseImage = do
 buildDockerEnv :: RIO Env (Either BuildError Dockerfile)
 buildDockerEnv = do
   logDebug "build appending env from config yaml."
-  conf <- asks (view #env . view #config)
+  conf <- fromMaybe Map.empty <$> asks (view #env . view #config)
   env  <- evalContT $ pure <$> mapWithKeyM fetchEnvVal' conf
   pure $ Docker.toDockerfile . buildEnv <$> env
   where

@@ -1,58 +1,32 @@
-module Dockwright.Data.Config where
+module Dockwright.Data.Config
+  ( module X
+  , readConfig
+  , toValTagsConfig
+  , toRefTagsConfig
+  , splitOn
+  ) where
 
 import           RIO
-import qualified RIO.Text        as Text
+import qualified RIO.Text                        as Text
 
 import           Data.Extensible
+import qualified Data.Yaml                       as Y
+import           Dockwright.Data.Config.Default  as X
+import           Dockwright.Data.Config.Internal as X
 
-type Config = Record
-   '[ "image"    >: Text
-    , "output"   >: FilePath
-    , "template" >: DockerfileTeamplate
-    , "base"     >: BaseImageConfig
-    , "env"      >: Map Text DockVal
-    , "tags"     >: [TagsConfig]
-    ]
+readConfig :: MonadIO m => FilePath -> m (Either Y.ParseException Config)
+readConfig = readConfigWith defaultConfig
 
-type DockerfileTeamplate = Record
-   '[ "before_env" >: Maybe FilePath
-    , "after_env"  >: Maybe FilePath
-    ]
-
-type BaseImageConfig = Record
-   '[ "repo" >: Text
-    , "tag"  >: Text
-    ]
-
-type DockVal = Record
-   '[ "github" >: Maybe GitHubConfig
-    , "value"  >: Maybe Text
-    ]
-
-type GitHubConfig = Record
-   '[ "repo"         >: Text
-    , "hook"         >: Text
-    , "strip_prefix" >: Maybe Text
-    ]
-
-type TagsConfig = Record
-   '[ "type"   >: Text
-    , "ref"    >: Maybe Text
-    , "keys"   >: [Text]
-    , "always" >: Maybe Bool
-    ]
-
-type ValTagsConfig = Record
-   '[ "keys"   >: [Text]
-    ]
+readConfigWith ::
+  MonadIO m => Config -> FilePath -> m (Either Y.ParseException Config)
+readConfigWith def path = do
+  file <- readFileBinary path
+  pure $ case Y.decodeEither' file of
+    Right Y.Null -> Right def
+    _            -> hzipWith fromNullable def <$> Y.decodeEither' file
 
 toValTagsConfig :: TagsConfig -> ValTagsConfig
 toValTagsConfig = shrink
-
-type RefTagsConfig = Record
-   '[ "ref"    >: Text
-    , "keys"   >: [Text]
-    ]
 
 toRefTagsConfig :: TagsConfig -> RefTagsConfig
 toRefTagsConfig conf

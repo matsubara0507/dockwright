@@ -1,0 +1,10 @@
+image: image/name
+output: "."
+template:
+  before_env: null
+  after_env: null
+base:
+  repo: ubuntu
+  tag: "18.04"
+env: null
+tags: []
