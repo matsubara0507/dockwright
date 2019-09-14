@@ -1,13 +1,11 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE OverloadedLabels #-}
-{-# LANGUAGE TypeOperators    #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
 module Dockwright.Data.Env
     ( Env
-    , DockwrightException (..)
+    , FetchError (..)
+    , displayFetchError
+    , BuildError (..)
+    , displayBuildError
+    , TagsError (..)
+    , displayTagsError
     ) where
 
 import           RIO
@@ -16,25 +14,44 @@ import qualified RIO.Text               as Text
 import           Data.Extensible
 import           Dockwright.Data.Config (Config)
 import qualified Language.Docker        as Docker
+import qualified Language.Docker.Parser as Docker
+import           Network.HTTP.Req       (HttpException)
 
 type Env = Record
   '[ "config" >: Config
    , "logger" >: LogFunc
    ]
 
-instance Associate "logger" LogFunc xs => HasLogFunc (Record xs) where
-  logFuncL = lens (view #logger) (\x y -> x & #logger `set` y)
+data FetchError
+   = HttpErr HttpException
+   | NoRelease
+   | UndefinedKey Text
+   | UndefinedConfig
+   | UrlParseErr Text
 
-data DockwrightException
-    = DockerfileParseError Docker.ParseError
-    | FetchEnvError Text
-    | EchoEnvError String
-    deriving (Typeable)
+displayFetchError :: IsString s => FetchError -> s
+displayFetchError = \case
+  HttpErr err      -> fromString $ "HTTP Error: " <> show err
+  NoRelease        -> "no release"
+  UndefinedKey key -> fromString $ "unknown GitHub hook key: " <> Text.unpack key
+  UndefinedConfig  -> "undefined config"
+  UrlParseErr url  -> fromString $ "can not parse url: " <> Text.unpack url
 
-instance Exception DockwrightException
+data BuildError
+  = FetchEnvErr Text FetchError
+  | ParseErr Docker.Error
 
-instance Show DockwrightException where
-  show = \case
-    DockerfileParseError err -> "dockerfile parse error: " <> show err
-    FetchEnvError err        -> "fetch env error: " <> Text.unpack err
-    EchoEnvError key         -> "echo env error: not found " <> key
+displayBuildError :: IsString s => BuildError -> s
+displayBuildError = \case
+  FetchEnvErr key err -> fromString $
+    "fetch env error with key: " <> Text.unpack key <> ": " <> displayFetchError err
+  ParseErr err        -> fromString $ Docker.errorBundlePretty err
+
+data TagsError
+  = FetchErr FetchError
+  | UndefinedType Text
+
+displayTagsError :: IsString s => TagsError -> s
+displayTagsError = \case
+  FetchErr err      -> displayFetchError err
+  UndefinedType typ -> fromString $ "undefined tags config type: " <> Text.unpack typ

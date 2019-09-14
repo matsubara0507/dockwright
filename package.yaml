@@ -1,5 +1,5 @@
 name:                dockwright
-version:             0.1.0.0
+version:             1.0.0
 github:              "matsubara0507/dockwright"
 license:             MIT
 author:              "MATSUBARA Nobutada"
@@ -22,21 +22,40 @@ ghc-options:
 default-extensions:
 - NoImplicitPrelude
 
+- BlockArguments
 - ConstraintKinds
+- DataKinds
 - FlexibleContexts
 - FlexibleInstances
+- GeneralizedNewtypeDeriving
+- LambdaCase
+- MultiWayIf
+- NumericUnderscores
+- OverloadedLabels
 - OverloadedStrings
 - PolyKinds
+- QuasiQuotes
+- RankNTypes
+- StandaloneDeriving
+- TemplateHaskell
+- TupleSections
+- TypeApplications
 - TypeFamilies
+- TypeOperators
 - TypeSynonymInstances
 
 dependencies:
 - base >= 4.7 && < 5
 - rio >= 0.1.1.0
-- data-default
-- extensible >= 0.4.9
-- language-docker
-- req
+- aeson
+- extensible >= 0.6
+- file-embed
+- fallible
+- language-docker >= 8.0
+- mix
+- mix-json-logger
+- req >= 2.0
+- th-lift-instances
 - yaml
 
 library:
@@ -46,23 +65,16 @@ executables:
   dockwright:
     main:                Main.hs
     source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     dependencies:
     - dockwright
-    - gitrev
+    - githash
 
 tests:
   dockwright-test:
-    main:                Driver.hs
+    main:                Spec.hs
     source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     dependencies:
     - dockwright
     - tasty
     - tasty-hspec
+    - tasty-hunit
