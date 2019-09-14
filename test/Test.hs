@@ -13,7 +13,7 @@ testConfig
    <: #output   @= "."
    <: #template @= template
    <: #base     @= (#repo @= "debian" <: #tag @= "latest" <: nil)
-   <: #env      @= Map.fromList [("test1", testDockVal)]
+   <: #env      @= Just (Map.fromList [("test1", testDockVal)])
    <: #tags     @= []
    <: nil
 
