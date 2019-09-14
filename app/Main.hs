@@ -12,6 +12,7 @@ import           Data.Extensible.GetOpt
 import           Data.Fallible
 import qualified Data.Yaml              as Y
 import qualified Dockwright
+import           GetOpt                 (withGetOpt')
 import qualified Language.Docker        as Docker
 import           Mix
 import           Mix.Plugin.Logger      as MixLogger
@@ -19,7 +20,8 @@ import           Mix.Plugin.Logger.JSON as MixLogger
 import qualified Version
 
 main :: IO ()
-main = withGetOpt "[options] [config-file]" info $ \opts args -> if
+main = withGetOpt' "[options] [config-file]" info $ \opts args usage -> if
+  | opts ^. #help          -> hPutBuilder stdout (fromString usage)
   | opts ^. #version       -> hPutBuilder stdout (Version.build version)
   | opts ^. #default       -> B.putStr (Dockwright.defaultConfig' <> "\n")
   | isJust (opts ^. #echo) -> getEnvInDockerfile opts args
@@ -28,7 +30,8 @@ main = withGetOpt "[options] [config-file]" info $ \opts args -> if
   | otherwise              -> buildDockerFile opts args
   where
     info
-        = #verbose  @= optFlag "v" ["verbose"] "Enable verbose mode"
+        = #help     @= optFlag "h" ["help"] "Show this help text"
+       <: #verbose  @= optFlag "v" ["verbose"] "Enable verbose mode"
        <: #version  @= optFlag [] ["version"] "Show version"
        <: #default  @= optFlag "d" ["default"] "Dump default config"
        <: #echo     @= optionOptArg (pure . firstJust) [] ["echo"] "ENV" "Show fetched env after build"
@@ -37,7 +40,8 @@ main = withGetOpt "[options] [config-file]" info $ \opts args -> if
        <: nil
 
 type Options =
-   '[ "verbose"  >: Bool
+   '[ "help"     >: Bool
+    , "verbose"  >: Bool
     , "version"  >: Bool
     , "default"  >: Bool
     , "echo"     >: Maybe String

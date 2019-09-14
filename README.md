@@ -10,11 +10,11 @@ see [example](example)
 
 ```
 $ dockwright --help
-unrecognized option `--help'
-
 dockwright [options] [config-file]
+  -h  --help        Show this help text
   -v  --verbose     Enable verbose mode
       --version     Show version
+  -d  --default     Dump default config
       --echo[=ENV]  Show fetched env after build
       --tags        Fetch docker image tags from DockerHub
       --new-tags    Fetch new tags from tags config
