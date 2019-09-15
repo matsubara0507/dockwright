@@ -18,6 +18,7 @@ dockwright [options] [config-file]
       --echo[=ENV]  Show fetched env after build
       --tags        Fetch docker image tags from DockerHub
       --new-tags    Fetch new tags from tags config
+      --with-name   Append image name to display tag
 ```
 
 ## Development

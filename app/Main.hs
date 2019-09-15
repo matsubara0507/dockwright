@@ -30,23 +30,25 @@ main = withGetOpt' "[options] [config-file]" info $ \opts args usage -> if
   | otherwise              -> buildDockerFile opts args
   where
     info
-        = #help     @= optFlag "h" ["help"] "Show this help text"
-       <: #verbose  @= optFlag "v" ["verbose"] "Enable verbose mode"
-       <: #version  @= optFlag [] ["version"] "Show version"
-       <: #default  @= optFlag "d" ["default"] "Dump default config"
-       <: #echo     @= optionOptArg (pure . firstJust) [] ["echo"] "ENV" "Show fetched env after build"
-       <: #tags     @= optFlag [] ["tags"] "Fetch docker image tags from DockerHub"
-       <: #new_tags @= optFlag [] ["new-tags"] "Fetch new tags from tags config"
+        = #help      @= optFlag "h" ["help"] "Show this help text"
+       <: #verbose   @= optFlag "v" ["verbose"] "Enable verbose mode"
+       <: #version   @= optFlag [] ["version"] "Show version"
+       <: #default   @= optFlag "d" ["default"] "Dump default config"
+       <: #echo      @= optionOptArg (pure . firstJust) [] ["echo"] "ENV" "Show fetched env after build"
+       <: #tags      @= optFlag [] ["tags"] "Fetch docker image tags from DockerHub"
+       <: #new_tags  @= optFlag [] ["new-tags"] "Fetch new tags from tags config"
+       <: #with_name @= optFlag [] ["with-name"] "Append image name to display tag"
        <: nil
 
 type Options =
-   '[ "help"     >: Bool
-    , "verbose"  >: Bool
-    , "version"  >: Bool
-    , "default"  >: Bool
-    , "echo"     >: Maybe String
-    , "tags"     >: Bool
-    , "new_tags" >: Bool
+   '[ "help"      >: Bool
+    , "verbose"   >: Bool
+    , "version"   >: Bool
+    , "default"   >: Bool
+    , "echo"      >: Maybe String
+    , "tags"      >: Bool
+    , "new_tags"  >: Bool
+    , "with_name" >: Bool
     ]
 
 buildDockerFile :: Record Options -> [String] -> IO ()
@@ -82,17 +84,19 @@ getEnvInDockerfile = runApp $ \opts -> evalContT $ do
       MixLogger.logError (fromString $ "echo env error: not found " <> Text.unpack key)
 
 fetchTagsByDockerHub :: Record Options -> [String] -> IO ()
-fetchTagsByDockerHub = runApp $ \_opts -> evalContT $ do
+fetchTagsByDockerHub = runApp $ \opts -> evalContT $ do
   imageName <- asks (view #image . view #config)
   tags <- lift (Dockwright.fetchImageTags imageName) !?= exit . fetchError
+
+  let prefix = if opts ^. #with_name then imageName <> ":" else ""
   forM_ (reverse $ L.sortOn (view #last_updated) tags) $ \tag ->
-    MixLogger.logInfo $ display (tag ^. #name)
+    MixLogger.logInfo $ display (prefix <> tag ^. #name)
   where
     fetchError err =
       MixLogger.logError (fromString $ Dockwright.displayFetchError err)
 
 fetchNewTags :: Record Options -> [String] -> IO ()
-fetchNewTags = runApp $ \_opts -> evalContT $ do
+fetchNewTags = runApp $ \opts -> evalContT $ do
   config <- asks (view #config)
   currentTags <- lift (Dockwright.fetchImageTags $ config ^. #image) !?= exit . fetchError
 
@@ -109,7 +113,9 @@ fetchNewTags = runApp $ \_opts -> evalContT $ do
      <: #force     @= forceTagNames
      <: nil
 
-  forM_ newTagNames $ \tagName -> MixLogger.logInfo $ display tagName
+  let prefix = if opts ^. #with_name then config ^. #image <> ":" else ""
+  forM_ newTagNames $ \tagName ->
+    MixLogger.logInfo $ display (prefix <> tagName)
   where
     fetchError err =
       MixLogger.logError (fromString $ Dockwright.displayFetchError err)
