@@ -32,7 +32,7 @@ jobs:
       - docker tag dockwrite $TRAVIS_REPO_SLUG
       - docker push $TRAVIS_REPO_SLUG
     - stage: push docker image
-      if: type = tag
+      if: tag IS present
       script:
       - stack --docker --local-bin-path=./bin install
       - docker build -t dockwrite . --build-arg local_bin_path=./bin
