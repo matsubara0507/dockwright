@@ -2,6 +2,10 @@
 
 ## Unreleased changes
 
+## 1.1.0
+
+- Feat: `--with-name` option for display tags commands
+
 ## 1.0.0
 
 - Refactor: update to lts14.4 and Stack v2
