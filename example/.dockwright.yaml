@@ -22,6 +22,4 @@ tags:
   keys:
   - nightly
   - lts
-  - lts-14
-  - lts-13
-  - lts-12
+  - lts-17
