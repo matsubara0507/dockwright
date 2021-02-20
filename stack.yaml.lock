@@ -5,12 +5,33 @@
 
 packages:
 - completed:
-    hackage: extensible-0.6.1@sha256:d73a5dc13bd00f44ace729f83ce868e81a45ea31c7453a6f8a4a9b5b0591d600,2860
+    hackage: dockerfile-creator-0.1.0.0@sha256:704e12cd2e3f07ec6704c6a2739a2e5129cea8abd08fa5c519cfc9dd346b97bf,2108
     pantry-tree:
-      size: 2354
-      sha256: 9fadd24af89df601f19d57893b513d1742a1942670d6d2e73e79fb4b7aabce65
+      size: 853
+      sha256: 11e24b09b0e416ff0c5e10249d86fdb869a3cb80ef7d6cf2d6b2a500d3d3ad1e
   original:
-    hackage: extensible-0.6.1
+    hackage: dockerfile-creator-0.1.0.0
+- completed:
+    hackage: extensible-0.8.1@sha256:280840e31d92510b342d6a8d82d7af39cfd250194f9c26fca1d5cd406ee206f6,2946
+    pantry-tree:
+      size: 2097
+      sha256: 49d78392bc6da683fe08b01b7e513b5eb471df1b8157616ca4d9dad0a9a23d3d
+  original:
+    hackage: extensible-0.8.1
+- completed:
+    hackage: fallible-0.1.0@sha256:0e0032c34120a43bf1d446172162b546e36441c38f620afb24e9d447ed7ce6b6,1312
+    pantry-tree:
+      size: 369
+      sha256: 7de6ccd3ae9fa01eafdb02afdd5a50f1f6babf48aeb31afa21d0329f0fdd19d1
+  original:
+    hackage: fallible-0.1.0
+- completed:
+    hackage: incremental-0.3.1@sha256:9c697bae4f7e5ceb144bde13e03ca2f36b4bc2d0c92bbc02e0a604231ee279c2,1153
+    pantry-tree:
+      size: 370
+      sha256: fd5f40352dbf1602babd2c5db2a120c26e57bbd5ad30b19ce24d04189f6a18d1
+  original:
+    hackage: incremental-0.3.1
 - completed:
     hackage: membership-0@sha256:3a11d8fd53cb1a76bb9273e6c929bbf9d649f109714bf487abb3143be04ddc81,995
     pantry-tree:
@@ -19,54 +40,34 @@ packages:
   original:
     hackage: membership-0
 - completed:
-    size: 5203
-    url: https://github.com/matsubara0507/fallible/archive/dfbdce1a0b0c71bcfcea844c94f9cb815f071235.tar.gz
-    cabal-file:
-      size: 1312
-      sha256: 0e0032c34120a43bf1d446172162b546e36441c38f620afb24e9d447ed7ce6b6
-    name: fallible
-    version: 0.1.0
-    sha256: 8f68bdcbf1326b0c3a3f87137ee6c7ff38d80ab1775222eb5def51d2a4718911
-    pantry-tree:
-      size: 572
-      sha256: 44ee246ef81562894b52cc3843150e98be75b03b53723173fe3f4ec8f48e0375
-  original:
-    url: https://github.com/matsubara0507/fallible/archive/dfbdce1a0b0c71bcfcea844c94f9cb815f071235.tar.gz
-- completed:
-    size: 8235
+    size: 11913
     subdir: mix
-    url: https://github.com/matsubara0507/mix.hs/archive/c6c303f9ddf4655a42804ee67d512af6d3b14e98.tar.gz
-    cabal-file:
-      size: 1110
-      sha256: 946df4a87070784d7ea659f6a3ad2f346f8cf31fea1135fc342feb5a303fa147
+    url: https://github.com/matsubara0507/mix.hs/archive/75714be080db16f6a4f9d0a22e86947ffcdadc57.tar.gz
     name: mix
     version: 0.1.1
-    sha256: ca6fa0fa725f34c7d70943fe21fa71164d58e226c9ef1d52a7b344232c748d24
+    sha256: c4aa501c544ab35a214e7b07f2f97fb19de644f48874c8d6838809bcf4d8edb9
     pantry-tree:
       size: 598
       sha256: 689bed307dc233a6c50e01f00295a079dc40a4291700646f3ca423d714ba35fc
   original:
     subdir: mix
-    url: https://github.com/matsubara0507/mix.hs/archive/c6c303f9ddf4655a42804ee67d512af6d3b14e98.tar.gz
+    url: https://github.com/matsubara0507/mix.hs/archive/75714be080db16f6a4f9d0a22e86947ffcdadc57.tar.gz
 - completed:
-    size: 8235
+    size: 11913
     subdir: mix-json-logger
-    url: https://github.com/matsubara0507/mix.hs/archive/c6c303f9ddf4655a42804ee67d512af6d3b14e98.tar.gz
-    cabal-file:
-      size: 1086
-      sha256: 4843982f1708e474ad68a9bddc213b5447fb285a71b8c8f720329768056b231b
+    url: https://github.com/matsubara0507/mix.hs/archive/75714be080db16f6a4f9d0a22e86947ffcdadc57.tar.gz
     name: mix-json-logger
     version: 0.1.0
-    sha256: ca6fa0fa725f34c7d70943fe21fa71164d58e226c9ef1d52a7b344232c748d24
+    sha256: c4aa501c544ab35a214e7b07f2f97fb19de644f48874c8d6838809bcf4d8edb9
     pantry-tree:
       size: 334
       sha256: 372be4778ce622e4ed87a5c77b4aa547a12da67c01570f2927f7a82ad9ec509d
   original:
     subdir: mix-json-logger
-    url: https://github.com/matsubara0507/mix.hs/archive/c6c303f9ddf4655a42804ee67d512af6d3b14e98.tar.gz
+    url: https://github.com/matsubara0507/mix.hs/archive/75714be080db16f6a4f9d0a22e86947ffcdadc57.tar.gz
 snapshots:
 - completed:
-    size: 523884
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/4.yaml
-    sha256: 16f24be248b42c9e16d59db84378836b1e7c239448a041cae46d32daffa45a8b
-  original: lts-14.4
+    size: 563103
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/17/4.yaml
+    sha256: f11e2153044f5f71ea7b1c9398f4721f517c9bd37642ed769647b896564021f3
+  original: lts-17.4

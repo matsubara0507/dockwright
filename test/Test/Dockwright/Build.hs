@@ -4,7 +4,7 @@ import           RIO
 import           Test
 
 import           Dockwright.Build
-import           Language.Docker
+import           Language.Docker.EDSL
 import           Test.Tasty
 import           Test.Tasty.Hspec
 

@@ -1,7 +1,6 @@
 module Dockwright.Fetch.DockerHub where
 
 import           RIO
-import qualified RIO.Text                  as Text
 
 import           Data.Extensible
 import           Dockwright.Data.Config    (splitOn)
@@ -9,6 +8,7 @@ import           Dockwright.Data.DockerHub
 import           Dockwright.Data.Env
 import           Mix.Plugin.Logger.JSON    as MixLogger
 import           Network.HTTP.Req
+import qualified Text.URI                  as URI
 
 fetchImageTags ::
   (MonadUnliftIO m, MonadReader e m, HasLogFunc e)
@@ -33,6 +33,6 @@ fetchImageTags imageName = do
     fetchTagsR xs (Just opts) = do
       tags <- runReq defaultHttpConfig (responseBody <$> buildReq opts)
       MixLogger.logDebugR "fetched tags with next url" (#next @= (tags ^. #next) <: nil)
-      let nextOpts = fmap snd $ parseUrlHttps =<< Text.encodeUtf8 <$> tags ^. #next
+      let nextOpts = fmap snd $ useHttpsURI =<< URI.mkURI =<< tags ^. #next
       threadDelay 100_000
       fetchTagsR (tags ^. #results ++ xs) nextOpts
