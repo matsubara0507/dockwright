@@ -15,6 +15,7 @@ import           Dockwright.Data.Env
 import           Dockwright.Fetch       (fetchEnvVal)
 import           Language.Docker        (Dockerfile)
 import qualified Language.Docker        as Docker
+import qualified Language.Docker.EDSL   as Docker
 
 build :: RIO Env (Either BuildError Dockerfile)
 build = evalContT $ do

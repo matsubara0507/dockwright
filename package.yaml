@@ -1,5 +1,5 @@
 name:                dockwright
-version:             1.1.0
+version:             1.2.0
 github:              "matsubara0507/dockwright"
 license:             MIT
 author:              "MATSUBARA Nobutada"
@@ -48,13 +48,15 @@ dependencies:
 - base >= 4.7 && < 5
 - rio >= 0.1.1.0
 - aeson
+- dockerfile-creator
 - extensible >= 0.6
 - file-embed
 - fallible
-- language-docker >= 8.0
+- language-docker >= 9.0
 - mix
 - mix-json-logger
-- req >= 2.0
+- modern-uri
+- req >= 3.0
 - th-lift-instances
 - yaml
 

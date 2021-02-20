@@ -1,17 +1,18 @@
-resolver: lts-14.4
+resolver: lts-17.4
 packages:
 - .
 extra-deps:
-- extensible-0.6.1
+- dockerfile-creator-0.1.0.0
+- extensible-0.8.1
+- fallible-0.1.0
+- incremental-0.3.1
 - membership-0
-- github: matsubara0507/fallible
-  commit: dfbdce1a0b0c71bcfcea844c94f9cb815f071235
 - github: matsubara0507/mix.hs
-  commit: c6c303f9ddf4655a42804ee67d512af6d3b14e98
+  commit: 75714be080db16f6a4f9d0a22e86947ffcdadc57
   subdirs:
   - mix
   - mix-json-logger
 
 docker:
-  repo: matsubara0507/stack-build
+  repo: ghcr.io/matsubara0507/stack-build:18.04
   enable: false

@@ -12,6 +12,7 @@ import           Dockwright.Data.DockerHub (Tag, toTag)
 import           Dockwright.Data.Env
 import           Mix.Plugin.Logger.JSON    as MixLogger
 import           Network.HTTP.Req
+import qualified Text.URI                  as URI
 
 fetchTags ::
   (MonadUnliftIO m, MonadReader e m, HasLogFunc e)
@@ -25,7 +26,7 @@ fetchTags config = do
     handler = pure . Left . HttpErr
 
     fetchTags' ref = evalContT $ do
-      (url, opts) <- parseUrlHttps (Text.encodeUtf8 ref) ??? exitA (Left $ UrlParseErr ref)
+      (url, opts) <- (useHttpsURI =<< URI.mkURI ref) ??? exitA (Left $ UrlParseErr ref)
       let request = req GET url NoReqBody jsonResponse (h <> opts)
       resp <- runReq defaultHttpConfig (responseBody <$> request)
       let tags =  flip lookupKey resp . Text.split (== ':') <$> config ^. #keys

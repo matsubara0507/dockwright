@@ -14,6 +14,7 @@ import qualified Data.Yaml              as Y
 import qualified Dockwright
 import           GetOpt                 (withGetOpt')
 import qualified Language.Docker        as Docker
+import qualified Language.Docker.EDSL   as Docker
 import           Mix
 import           Mix.Plugin.Logger      as MixLogger
 import           Mix.Plugin.Logger.JSON as MixLogger
