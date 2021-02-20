@@ -6,7 +6,7 @@ on:
     branches:
     - master
     tags:
-    - v*
+    - 1.*
 
 jobs:
   build:
@@ -54,8 +54,8 @@ jobs:
       run: |
         DOCKER_IMAGE=ghcr.io/matsubara0507/dockwright
         TAGS="${DOCKER_IMAGE}:latest"
-        if [[ $GITHUB_REF == refs/tags/v* ]]; then
-          TAGS="$TAGS,${DOCKER_IMAGE}:${GITHUB_REF#refs/tags/v}"
+        if [[ $GITHUB_REF == refs/tags/* ]]; then
+          TAGS="$TAGS,${DOCKER_IMAGE}:${GITHUB_REF#refs/tags/}"
         fi
         echo ::set-output name=tags::${TAGS}
     - name: Setup QEMU
