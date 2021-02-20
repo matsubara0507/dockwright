@@ -46,7 +46,7 @@ jobs:
       run: stack --system-ghc test --copy-bins --local-bin-path=./bin
 
     - name: Run example
-      run: stack --system-ghc exec -- dockwright .dockwright.yaml
+      run: ./../bin/dockwright .dockwright.yaml
       working-directory: exampmle
 
     # Build and Push Docker Image
